@@ -23,7 +23,7 @@ gitkit = gitkitclient.GitkitClient(
     client_id=GOOGLE_OAUTH2_WEB_CLIENT_ID,
     service_account_email=SERVICE_ACCOUNT_EMAIL,
     service_account_key=SERVICE_ACCOUNT_PRIVATE_KEY_P12,
-    widget_url=URL_OF_GITKIT_WIDGET,  # must start with '/'
+    widget_url=FULL_URL_OF_GITKIT_WIDGET,
     cookie_name='gtoken')
 
 # Verify Gitkit token locally
@@ -294,7 +294,7 @@ class GitkitClient(object):
     """Gets out-of-band code for ResetPassword/ChangeEmail request.
 
     Args:
-      full_url: string, the full URL of incoming request
+      full_url: deprecated. Kept for compatibility.
       param: dict of HTTP POST params
       user_ip: string, end user's IP address
       gitkit_token: string, the gitkit token if user logged in
@@ -313,7 +313,7 @@ class GitkitClient(object):
       try:
         if param['action'] == GitkitClient.RESET_PASSWORD_ACTION:
           request = self._PasswordResetRequest(param, user_ip)
-          oob_code, oob_link = self._BuildOobLink(full_url, request,
+          oob_code, oob_link = self._BuildOobLink(request,
                                                   param['action'])
           return {
               'action': GitkitClient.RESET_PASSWORD_ACTION,
@@ -326,7 +326,7 @@ class GitkitClient(object):
           if not gitkit_token:
             return self._FailureOobResponse('login is required')
           request = self._ChangeEmailRequest(param, user_ip, gitkit_token)
-          oob_code, oob_link = self._BuildOobLink(full_url, request,
+          oob_code, oob_link = self._BuildOobLink(request,
                                                   param['action'])
           return {
               'action': GitkitClient.CHANGE_EMAIL_ACTION,
@@ -351,7 +351,7 @@ class GitkitClient(object):
     """
     return {'response_body': simplejson.dumps({'error': error_msg})}
 
-  def _BuildOobLink(self, full_url, param, mode):
+  def _BuildOobLink(self, param, mode):
     """Builds out-of-band URL.
 
     Gitkit API GetOobCode() is called and the returning code is combined
@@ -371,10 +371,13 @@ class GitkitClient(object):
     """
     code = self.rpc_helper.GetOobCode(param)
     if code:
-      parsed = urlparse.urlparse(full_url)
-      query = urllib.urlencode({'mode': mode, 'oobCode': code})
-      return code, urlparse.urlunparse((parsed.scheme, parsed.netloc,
-                                        self.widget_url, None, query, None))
+      parsed = list(urlparse.urlparse(self.widget_url))
+
+      query = dict(urlparse.parse_qsl(parsed[4]))
+      query.update({'mode': mode, 'oobCode': code})
+      parsed[4] = urllib.urlencode(query)
+
+      return code, urlparse.urlunparse(parsed)
     raise errors.GitkitClientError('invalid request')
 
   def _PasswordResetRequest(self, param, user_ip):

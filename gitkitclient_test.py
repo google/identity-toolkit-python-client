@@ -26,7 +26,7 @@ import gitkitclient
 class GitkitClientTest(unittest.TestCase):
 
   def setUp(self):
-    self.widget_url = '/widget'
+    self.widget_url = 'http://localhost:9000/widget'
     self.gitkitclient = gitkitclient.GitkitClient('', '', '', self.widget_url)
     self.user_id = '1234'
     self.email = 'user@example.com'
@@ -107,7 +107,6 @@ class GitkitClientTest(unittest.TestCase):
 
   def testGetOobResult(self):
     code = '1234'
-    page_url = 'http://localhost:9000/random_page'
     with mock.patch('rpchelper.RpcHelper._InvokeGitkitApi') as rpc_mock:
       rpc_mock.return_value = {'oobCode': code}
       widget_request = {
@@ -116,14 +115,14 @@ class GitkitClientTest(unittest.TestCase):
           'challenge': 'what is this number',
           'response': '8888'
       }
-      result = self.gitkitclient.GetOobResult(page_url, widget_request,
+      result = self.gitkitclient.GetOobResult("", widget_request,
                                               '1.1.1.1')
       self.assertEqual('resetPassword', result['action'])
       self.assertEqual(self.email, result['email'])
       self.assertEqual(code, result['oob_code'])
       self.assertEqual('{"success": "true"}', result['response_body'])
+      self.assertTrue(result['oob_link'].startswith(self.widget_url))
       url = urlparse.urlparse(result['oob_link'])
-      self.assertEqual(self.widget_url, url.path)
       query = urlparse.parse_qs(url.query)
       self.assertEqual('resetPassword', query['mode'][0])
       self.assertEqual(code, query['oobCode'][0])
