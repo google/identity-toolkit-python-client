@@ -21,8 +21,8 @@ import unittest
 import mock
 import simplejson
 
-import errors
-import rpchelper
+from identitytoolkit import errors
+from identitytoolkit import rpchelper
 
 
 class RpcHelperTest(unittest.TestCase):

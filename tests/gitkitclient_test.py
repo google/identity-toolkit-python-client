@@ -20,7 +20,7 @@ import urlparse
 
 import mock
 
-import gitkitclient
+from identitytoolkit import gitkitclient
 
 
 class GitkitClientTest(unittest.TestCase):
@@ -34,7 +34,7 @@ class GitkitClientTest(unittest.TestCase):
     self.user_photo = 'http://idp.com/photo'
 
   def testVerifyToken(self):
-    with mock.patch('rpchelper.RpcHelper.GetPublicCert') as rpc_mock:
+    with mock.patch('identitytoolkit.rpchelper.RpcHelper.GetPublicCert') as rpc_mock:
       rpc_mock.return_value = {'kid': 'cert'}
       with mock.patch('oauth2client.crypt.'
                       'verify_signed_jwt_with_certs') as crypt_mock:
@@ -45,7 +45,7 @@ class GitkitClientTest(unittest.TestCase):
         self.assertEqual({}, gitkit_user.provider_info)
 
   def testGetAccountInfo(self):
-    with mock.patch('rpchelper.RpcHelper._InvokeGitkitApi') as rpc_mock:
+    with mock.patch('identitytoolkit.rpchelper.RpcHelper._InvokeGitkitApi') as rpc_mock:
       rpc_mock.return_value = {'users': [{
           'email': self.email,
           'localId': self.user_id,
@@ -67,7 +67,7 @@ class GitkitClientTest(unittest.TestCase):
         'displayName': self.user_name,
         'photoUrl': self.user_photo
     })
-    with mock.patch('rpchelper.RpcHelper._InvokeGitkitApi') as rpc_mock:
+    with mock.patch('identitytoolkit.rpchelper.RpcHelper._InvokeGitkitApi') as rpc_mock:
       rpc_mock.return_value = {}
       self.gitkitclient.UploadUsers(hash_algorithm, hash_key, [upload_user])
       expected_param = {
@@ -83,7 +83,7 @@ class GitkitClientTest(unittest.TestCase):
       rpc_mock.assert_called_with('uploadAccount', expected_param)
 
   def testDownloadAccount(self):
-    with mock.patch('rpchelper.RpcHelper._InvokeGitkitApi') as rpc_mock:
+    with mock.patch('identitytoolkit.rpchelper.RpcHelper._InvokeGitkitApi') as rpc_mock:
       # First paginated request
       rpc_mock.return_value = {
           'nextPageToken': '100',
@@ -107,7 +107,7 @@ class GitkitClientTest(unittest.TestCase):
 
   def testGetOobResult(self):
     code = '1234'
-    with mock.patch('rpchelper.RpcHelper._InvokeGitkitApi') as rpc_mock:
+    with mock.patch('identitytoolkit.rpchelper.RpcHelper._InvokeGitkitApi') as rpc_mock:
       rpc_mock.return_value = {'oobCode': code}
       widget_request = {
           'action': 'resetPassword',
