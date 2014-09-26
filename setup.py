@@ -14,7 +14,6 @@ setup(
   version = '0.1',
   description = 'Google Identity Toolkit python client library',
   author = 'Jin Liu',
-  #author_email = 'liujin@google.com',
   url = 'https://github.com/google/identity-toolkit-python-client',
   download_url = 'https://github.com/google/identity-toolkit-python-client/archive/master.zip', 
   keywords = ['identity', 'google', 'login', 'toolkit'], # arbitrary keywords
