@@ -1,3 +1,4 @@
 # Build artifacts
 *.py[cod]
 dist/
+identity_toolkit_python_client.egg-info/

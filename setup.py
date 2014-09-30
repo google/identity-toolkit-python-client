@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 install_requires = [
   'oauth2client>=1.2',
@@ -11,7 +11,7 @@ setup(
   packages = packages,
   install_requires = install_requires,
   license="Apache 2.0",
-  version = '0.1',
+  version = '0.1.1',
   description = 'Google Identity Toolkit python client library',
   author = 'Jin Liu',
   url = 'https://github.com/google/identity-toolkit-python-client',
