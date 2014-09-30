@@ -1,10 +1,12 @@
-This is python client library for Google Identity Toolkit services.
+This is the python client library for Google Identity Toolkit services.
 
 Sample usage
 =====================
-  #
-  # initialize Gitkit client instance
-  #
+
+Initialize Gitkit client instance
+--------------
+
+```python 
   p12_file = 'YOUR_SERVICE_ACCOUNT_PRIVATE_KEY_FILE.p12'
   f = file(p12_file, 'rb')
   key = f.read()
@@ -14,15 +16,18 @@ Sample usage
       service_account_email='YOUR_SERVICE_ACCOUNT_EMAIL@developer.gserviceaccount.com',
       service_account_key=key,
       widget_url='URL_ON_YOUR_SERVER_TO_HOST_GITKIT_WIDGET')
+```
 
-  #
-  # verify gitkit token in http request cookie
-  #
+Verify Gitkit Token in HTTP request cookie
+--------------
+```python
   user = gitkit_instance.VerifyGitkitToken(request.COOKIES['gtoken'])
+```
+  
+Upload Multiple Accounts
+--------------
 
-  #
-  # upload multiple accounts
-  #
+```python
   hashKey = 'hash-key'
   user1 = gitkitclient.GitkitUser()
   user1.email = '1234@example.com'
@@ -37,20 +42,26 @@ Sample usage
   user2.passwordHash = calcHmac(hashKey, '5555', 'salt-2')
 
   gitkit_instance.UploadUsers('HMAC_SHA1', hashKey, [user1, user2])
+```
 
-  #
-  # download accounts
-  #
+Download Accounts
+--------------
+
+```python
   for account in gitkit_instance.GetAllUsers(2):
     pprint(vars(account))
+```
 
-  #
-  # get account info
-  #
+Get Account Info
+--------------
+
+```python
   pprint(vars(gitkit_instance.GetUserById('1234')))
   pprint(vars(gitkit_instance.GetUserByEmail('5678@example.com')))
+```
 
-  #
-  # delete account
-  #
+Delete Account
+--------------
+```python
   gitkit_instance.DeleteUser('1234')
+```
