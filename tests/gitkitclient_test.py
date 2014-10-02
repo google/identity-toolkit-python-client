@@ -115,8 +115,7 @@ class GitkitClientTest(unittest.TestCase):
           'challenge': 'what is this number',
           'response': '8888'
       }
-      result = self.gitkitclient.GetOobResult("", widget_request,
-                                              '1.1.1.1')
+      result = self.gitkitclient.GetOobResult(widget_request, '1.1.1.1')
       self.assertEqual('resetPassword', result['action'])
       self.assertEqual(self.email, result['email'])
       self.assertEqual(code, result['oob_code'])

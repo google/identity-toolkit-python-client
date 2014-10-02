@@ -290,11 +290,10 @@ class GitkitClient(object):
     """
     return self.rpc_helper.DeleteAccount(local_id)
 
-  def GetOobResult(self, full_url, param, user_ip, gitkit_token=None):
+  def GetOobResult(self, param, user_ip, gitkit_token=None):
     """Gets out-of-band code for ResetPassword/ChangeEmail request.
 
     Args:
-      full_url: deprecated. Kept for compatibility.
       param: dict of HTTP POST params
       user_ip: string, end user's IP address
       gitkit_token: string, the gitkit token if user logged in
@@ -358,7 +357,6 @@ class GitkitClient(object):
     with Gitkit widget URL to building the out-of-band url.
 
     Args:
-      full_url: string, full url of the ajax endpoint.
       param: dict of request.
       mode: string, Gitkit widget mode to handle the oob action after user
           clicks the oob url in the email.
