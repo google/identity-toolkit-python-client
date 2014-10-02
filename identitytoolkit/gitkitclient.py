@@ -330,7 +330,7 @@ class GitkitClient(object):
                                                   param['action'])
           return {
               'action': GitkitClient.CHANGE_EMAIL_ACTION,
-              'email': param['email'],
+              'email': param['oldEmail'],
               'new_email': param['newEmail'],
               'oob_link': oob_link,
               'oob_code': oob_code,
