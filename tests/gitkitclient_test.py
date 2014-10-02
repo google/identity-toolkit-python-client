@@ -120,7 +120,7 @@ class GitkitClientTest(unittest.TestCase):
       self.assertEqual('resetPassword', result['action'])
       self.assertEqual(self.email, result['email'])
       self.assertEqual(code, result['oob_code'])
-      self.assertEqual('{"success": "true"}', result['response_body'])
+      self.assertEqual('{"success": true}', result['response_body'])
       self.assertTrue(result['oob_link'].startswith(self.widget_url))
       url = urlparse.urlparse(result['oob_link'])
       query = urlparse.parse_qs(url.query)

@@ -320,7 +320,7 @@ class GitkitClient(object):
               'email': param['email'],
               'oob_link': oob_link,
               'oob_code': oob_code,
-              'response_body': simplejson.dumps({'success': 'true'})
+              'response_body': simplejson.dumps({'success': True})
           }
         elif param['action'] == GitkitClient.CHANGE_EMAIL_ACTION:
           if not gitkit_token:
@@ -334,7 +334,7 @@ class GitkitClient(object):
               'new_email': param['newEmail'],
               'oob_link': oob_link,
               'oob_code': oob_code,
-              'response_body': simplejson.dumps({'success': 'true'})
+              'response_body': simplejson.dumps({'success': True})
           }
       except errors.GitkitClientError as error:
         return self._FailureOobResponse(error.value)
