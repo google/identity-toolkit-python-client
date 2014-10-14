@@ -3,6 +3,7 @@ from setuptools import setup
 install_requires = [
   'oauth2client>=1.2',
   'pyOpenSSL==0.13',
+  'simplejson>=2.3.2',
   ]
 
 packages = ['identitytoolkit',]
