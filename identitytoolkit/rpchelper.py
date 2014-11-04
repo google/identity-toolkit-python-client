@@ -183,7 +183,13 @@ class RpcHelper(object):
     req.add_header('Content-type', 'application/json')
     if need_service_account:
       req.add_header('Authorization', 'Bearer ' + self._GetAccessToken())
-    raw_response = urllib2.urlopen(req, body).read()
+    try:
+      raw_response = urllib2.urlopen(req, body).read()
+    except urllib2.HTTPError, err:
+      if err.code == 400:
+        raw_response = err.read()
+      else:
+        raise
     return self._CheckGitkitError(raw_response)
 
   def _GetAccessToken(self):
