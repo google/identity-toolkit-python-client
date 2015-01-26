@@ -339,6 +339,21 @@ class GitkitClient(object):
         return self._FailureOobResponse(error.value)
     return self._FailureOobResponse('unknown request type')
 
+  def GetEmailVerificationLink(self, email):
+    """Get the url to verify user's email
+
+    Args:
+      email: string, user's email to be verified
+
+    Returns:
+      The email verification link.
+    """
+    param = {
+      'email': email,
+      'requestType': 'VERIFY_EMAIL'
+    }
+    return self._BuildOobLink(param, "verifyEmail")[1]
+
   def _FailureOobResponse(self, error_msg):
     """Generates failed response for out-of-band operation.
 

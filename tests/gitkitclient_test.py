@@ -126,5 +126,16 @@ class GitkitClientTest(unittest.TestCase):
       self.assertEqual('resetPassword', query['mode'][0])
       self.assertEqual(code, query['oobCode'][0])
 
+  def testGetEmailVerificationLink(self):
+      code = '1234'
+      with mock.patch('identitytoolkit.rpchelper.RpcHelper._InvokeGitkitApi') as rpc_mock:
+          rpc_mock.return_value = {'oobCode': code}
+          result = self.gitkitclient.GetEmailVerificationLink('user@example.com')
+          self.assertTrue(result.startswith(self.widget_url))
+          url = urlparse.urlparse(result)
+          query = urlparse.parse_qs(url.query)
+          self.assertEqual('verifyEmail', query['mode'][0])
+          self.assertEqual(code, query['oobCode'][0])
+
 if __name__ == '__main__':
   unittest.main()
