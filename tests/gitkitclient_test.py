@@ -112,7 +112,6 @@ class GitkitClientTest(unittest.TestCase):
       widget_request = {
           'action': 'resetPassword',
           'email': self.email,
-          'challenge': 'what is this number',
           'response': '8888'
       }
       result = self.gitkitclient.GetOobResult(widget_request, '1.1.1.1')

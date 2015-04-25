@@ -397,7 +397,6 @@ class GitkitClient(object):
     return {
         'email': param['email'],
         'userIp': user_ip,
-        'challenge': param['challenge'],
         'captchaResp': param['response'],
         'requestType': 'PASSWORD_RESET'}
 
