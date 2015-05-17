@@ -66,8 +66,8 @@ class GitkitUser(object):
   def __init__(self, decode=True, **kwargs):
     self.email = kwargs['email']
     self.user_id = kwargs.get('user_id', kwargs.get('localId'))
-    self.name = kwargs.get('displayName', None)
-    self.photo_url = kwargs.get('photoUrl', None)
+    self.name = kwargs.get('displayName', kwargs.get('display_name', None))
+    self.photo_url = kwargs.get('photoUrl', kwargs.get('photo_url', None))
     self.provider_id = kwargs.get('provider_id', None)
     self.email_verified = kwargs.get(
         'emailVerified', kwargs.get('verified', None))

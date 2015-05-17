@@ -38,10 +38,16 @@ class GitkitClientTest(unittest.TestCase):
       rpc_mock.return_value = {'kid': 'cert'}
       with mock.patch('oauth2client.crypt.'
                       'verify_signed_jwt_with_certs') as crypt_mock:
-        crypt_mock.return_value = {'localId': self.user_id, 'email': self.email}
+        crypt_mock.return_value = {
+            'localId': self.user_id,
+            'email': self.email,
+            'display_name': self.user_name
+        }
         gitkit_user = self.gitkitclient.VerifyGitkitToken('token')
         self.assertEqual(self.user_id, gitkit_user.user_id)
         self.assertEqual(self.email, gitkit_user.email)
+        self.assertEqual(self.user_name, gitkit_user.name)
+        self.assertIsNone(gitkit_user.photo_url)
         self.assertEqual({}, gitkit_user.provider_info)
 
   def testGetAccountInfo(self):
