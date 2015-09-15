@@ -184,7 +184,8 @@ class RpcHelper(object):
     if need_service_account:
       req.add_header('Authorization', 'Bearer ' + self._GetAccessToken())
     try:
-      raw_response = urllib.request.urlopen(req, body).read()
+      binary_body = body.encode('utf-8')
+      raw_response = urllib.request.urlopen(req, binary_body).read()
     except urllib.request.HTTPError as err:
       if err.code == 400:
         raw_response = err.read()
@@ -204,7 +205,8 @@ class RpcHelper(object):
     })
     req = urllib.request.Request(RpcHelper.TOKEN_ENDPOINT)
     req.add_header('Content-type', 'application/x-www-form-urlencoded')
-    raw_response = urllib.request.urlopen(req, body)
+    binary_body = body.encode('utf-8')
+    raw_response = urllib.request.urlopen(req, binary_body)
     return simplejson.loads(raw_response.read())['access_token']
 
   def _GenerateAssertion(self):
