@@ -42,7 +42,10 @@ for account in gitkit.GetAllUsers():
 
 import base64
 import urllib
-from urllib import parse
+try:
+    from urllib import parse
+except ImportError:
+    import urlparse as parse
 
 from oauth2client import crypt
 import simplejson
