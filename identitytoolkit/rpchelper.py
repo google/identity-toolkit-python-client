@@ -19,7 +19,8 @@ party developers do not need to call this class directly.
 """
 
 import time
-import urllib
+import urllib.request
+import urllib.parse
 
 import httplib2
 from oauth2client import client
@@ -197,7 +198,7 @@ class RpcHelper(object):
     Returns:
       string, oauth2 access token.
     """
-    body = urllib.urlencode({
+    body = urllib.parse.urlencode({
         'assertion': self._GenerateAssertion(),
         'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
     })
@@ -212,7 +213,7 @@ class RpcHelper(object):
     Returns:
       string, signed Json Web Token (JWT) assertion.
     """
-    now = long(time.time())
+    now = int(time.time())
     payload = {
         'aud': RpcHelper.TOKEN_ENDPOINT,
         'scope': 'https://www.googleapis.com/auth/identitytoolkit',
