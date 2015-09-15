@@ -42,7 +42,7 @@ for account in gitkit.GetAllUsers():
 
 import base64
 import urllib
-import urlparse
+from urllib import parse
 
 from oauth2client import crypt
 import simplejson
@@ -384,13 +384,13 @@ class GitkitClient(object):
     """
     code = self.rpc_helper.GetOobCode(param)
     if code:
-      parsed = list(urlparse.urlparse(self.widget_url))
+      parsed = list(parse.urlparse(self.widget_url))
 
-      query = dict(urlparse.parse_qsl(parsed[4]))
+      query = dict(parse.parse_qsl(parsed[4]))
       query.update({'mode': mode, 'oobCode': code})
       parsed[4] = urllib.urlencode(query)
 
-      return code, urlparse.urlunparse(parsed)
+      return code, parse.urlunparse(parsed)
     raise errors.GitkitClientError('invalid request')
 
   def _PasswordResetRequest(self, param, user_ip):
