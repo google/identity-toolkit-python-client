@@ -47,8 +47,8 @@ from urllib import parse
 from oauth2client import crypt
 import simplejson
 
-import identitytoolkit.errors
-import identitytoolkit.rpchelper
+from identitytoolkit import errors
+from identitytoolkit import rpchelper
 
 
 # Symbolic constants for hash algorithms supported by Gitkit service.
