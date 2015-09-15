@@ -26,7 +26,7 @@ from oauth2client import client
 from oauth2client import crypt
 import simplejson
 
-import errors
+import identitytoolkit.errors
 
 
 class RpcHelper(object):
