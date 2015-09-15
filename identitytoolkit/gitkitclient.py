@@ -192,7 +192,7 @@ class GitkitClient(object):
   def FromConfigFile(cls, config):
     json_data = simplejson.load(open(config))
 
-    key_file = file(json_data['serviceAccountPrivateKeyFile'], 'rb')
+    key_file = open(json_data['serviceAccountPrivateKeyFile'], 'rb')
     key = key_file.read()
     key_file.close()
 
