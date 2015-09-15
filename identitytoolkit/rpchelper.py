@@ -19,15 +19,15 @@ party developers do not need to call this class directly.
 """
 
 import time
-import urllib
-import urllib2
+import urllib.request
+import urllib.parse
 
 import httplib2
 from oauth2client import client
 from oauth2client import crypt
 import simplejson
 
-import errors
+import identitytoolkit.errors
 
 
 class RpcHelper(object):
@@ -179,13 +179,14 @@ class RpcHelper(object):
       API response as dict.
     """
     body = simplejson.dumps(params)
-    req = urllib2.Request(self.google_api_url + method)
+    req = urllib.request.Request(self.google_api_url + method)
     req.add_header('Content-type', 'application/json')
     if need_service_account:
       req.add_header('Authorization', 'Bearer ' + self._GetAccessToken())
     try:
-      raw_response = urllib2.urlopen(req, body).read()
-    except urllib2.HTTPError, err:
+      binary_body = body.encode('utf-8')
+      raw_response = urllib.request.urlopen(req, binary_body).read()
+    except urllib.request.HTTPError as err:
       if err.code == 400:
         raw_response = err.read()
       else:
@@ -198,13 +199,14 @@ class RpcHelper(object):
     Returns:
       string, oauth2 access token.
     """
-    body = urllib.urlencode({
+    body = urllib.parse.urlencode({
         'assertion': self._GenerateAssertion(),
         'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
     })
-    req = urllib2.Request(RpcHelper.TOKEN_ENDPOINT)
+    req = urllib.request.Request(RpcHelper.TOKEN_ENDPOINT)
     req.add_header('Content-type', 'application/x-www-form-urlencoded')
-    raw_response = urllib2.urlopen(req, body)
+    binary_body = body.encode('utf-8')
+    raw_response = urllib.request.urlopen(req, binary_body)
     return simplejson.loads(raw_response.read())['access_token']
 
   def _GenerateAssertion(self):
@@ -213,7 +215,7 @@ class RpcHelper(object):
     Returns:
       string, signed Json Web Token (JWT) assertion.
     """
-    now = long(time.time())
+    now = int(time.time())
     payload = {
         'aud': RpcHelper.TOKEN_ENDPOINT,
         'scope': 'https://www.googleapis.com/auth/identitytoolkit',
