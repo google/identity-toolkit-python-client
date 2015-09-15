@@ -185,7 +185,7 @@ class RpcHelper(object):
       req.add_header('Authorization', 'Bearer ' + self._GetAccessToken())
     try:
       raw_response = urllib2.urlopen(req, body).read()
-    except urllib2.HTTPError, err:
+    except urllib2.HTTPError as err:
       if err.code == 400:
         raw_response = err.read()
       else:
