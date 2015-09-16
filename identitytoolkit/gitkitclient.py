@@ -391,7 +391,11 @@ class GitkitClient(object):
 
       query = dict(parse.parse_qsl(parsed[4]))
       query.update({'mode': mode, 'oobCode': code})
-      parsed[4] = urllib.urlencode(query)
+      
+      try:
+        parsed[4] = parse.urlencode(query)
+      except AttributeError:
+        parsed[4] = urllib.urlencode(query)
 
       return code, parse.urlunparse(parsed)
     raise errors.GitkitClientError('invalid request')

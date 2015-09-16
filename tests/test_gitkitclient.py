@@ -16,9 +16,12 @@
 
 import base64
 import unittest
-import urlparse
-
-import mock
+try:
+    from urllib import parse
+    from unittest import mock
+except ImportError:
+    import urlparse as parse
+    import mock
 
 from identitytoolkit import gitkitclient
 
@@ -99,12 +102,16 @@ class GitkitClientTestCase(unittest.TestCase):
           ]
       }
       iterator = self.gitkitclient.GetAllUsers()
-      self.assertEqual(self.email, iterator.next().email)
-      self.assertEqual('another@example.com', iterator.next().email)
+      self.assertEqual(self.email, next(iterator).email)
+      self.assertEqual('another@example.com', next(iterator).email)
 
       # Should stop since no more result
       rpc_mock.return_value = {}
-      self.assertRaises(StopIteration, iterator.next)
+      try:
+        with self.assertRaises(StopIteration):
+            next(iterator)
+      except AttributeError:
+        self.assertRaises(StopIteration, iterator.next)
 
       expected_call = [(('downloadAccount', {'maxResults': 10}),),
                        (('downloadAccount',
@@ -126,8 +133,8 @@ class GitkitClientTestCase(unittest.TestCase):
       self.assertEqual(code, result['oob_code'])
       self.assertEqual('{"success": true}', result['response_body'])
       self.assertTrue(result['oob_link'].startswith(self.widget_url))
-      url = urlparse.urlparse(result['oob_link'])
-      query = urlparse.parse_qs(url.query)
+      url = parse.urlparse(result['oob_link'])
+      query = parse.parse_qs(url.query)
       self.assertEqual('resetPassword', query['mode'][0])
       self.assertEqual(code, query['oobCode'][0])
 
@@ -137,8 +144,8 @@ class GitkitClientTestCase(unittest.TestCase):
           rpc_mock.return_value = {'oobCode': code}
           result = self.gitkitclient.GetEmailVerificationLink('user@example.com')
           self.assertTrue(result.startswith(self.widget_url))
-          url = urlparse.urlparse(result)
-          query = urlparse.parse_qs(url.query)
+          url = parse.urlparse(result)
+          query = parse.parse_qs(url.query)
           self.assertEqual('verifyEmail', query['mode'][0])
           self.assertEqual(code, query['oobCode'][0])
 
