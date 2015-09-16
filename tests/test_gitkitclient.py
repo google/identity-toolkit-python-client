@@ -23,7 +23,7 @@ import mock
 from identitytoolkit import gitkitclient
 
 
-class GitkitClientTest(unittest.TestCase):
+class GitkitClientTestCase(unittest.TestCase):
 
   def setUp(self):
     self.widget_url = 'http://localhost:9000/widget'
