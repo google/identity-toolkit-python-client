@@ -16,14 +16,17 @@
 
 import base64
 import unittest
-import urlparse
-
-import mock
+try:
+    from urllib import parse
+    from unittest import mock
+except ImportError:
+    import urlparse as parse
+    import mock
 
 from identitytoolkit import gitkitclient
 
 
-class GitkitClientTest(unittest.TestCase):
+class GitkitClientTestCase(unittest.TestCase):
 
   def setUp(self):
     self.widget_url = 'http://localhost:9000/widget'
@@ -66,7 +69,10 @@ class GitkitClientTest(unittest.TestCase):
 
   def testUploadAccount(self):
     hash_algorithm = gitkitclient.ALGORITHM_HMAC_SHA256
-    hash_key = 'key123'
+    try:
+        hash_key = bytes('key123', 'utf-8')
+    except TypeError:
+        hash_key = 'key123'
     upload_user = gitkitclient.GitkitUser.FromDictionary({
         'email': self.email,
         'localId': self.user_id,
@@ -99,12 +105,16 @@ class GitkitClientTest(unittest.TestCase):
           ]
       }
       iterator = self.gitkitclient.GetAllUsers()
-      self.assertEqual(self.email, iterator.next().email)
-      self.assertEqual('another@example.com', iterator.next().email)
+      self.assertEqual(self.email, next(iterator).email)
+      self.assertEqual('another@example.com', next(iterator).email)
 
       # Should stop since no more result
       rpc_mock.return_value = {}
-      self.assertRaises(StopIteration, iterator.next)
+      try:
+        with self.assertRaises(StopIteration):
+            next(iterator)
+      except AttributeError:
+        self.assertRaises(StopIteration, iterator.next)
 
       expected_call = [(('downloadAccount', {'maxResults': 10}),),
                        (('downloadAccount',
@@ -126,8 +136,8 @@ class GitkitClientTest(unittest.TestCase):
       self.assertEqual(code, result['oob_code'])
       self.assertEqual('{"success": true}', result['response_body'])
       self.assertTrue(result['oob_link'].startswith(self.widget_url))
-      url = urlparse.urlparse(result['oob_link'])
-      query = urlparse.parse_qs(url.query)
+      url = parse.urlparse(result['oob_link'])
+      query = parse.parse_qs(url.query)
       self.assertEqual('resetPassword', query['mode'][0])
       self.assertEqual(code, query['oobCode'][0])
 
@@ -137,8 +147,8 @@ class GitkitClientTest(unittest.TestCase):
           rpc_mock.return_value = {'oobCode': code}
           result = self.gitkitclient.GetEmailVerificationLink('user@example.com')
           self.assertTrue(result.startswith(self.widget_url))
-          url = urlparse.urlparse(result)
-          query = urlparse.parse_qs(url.query)
+          url = parse.urlparse(result)
+          query = parse.parse_qs(url.query)
           self.assertEqual('verifyEmail', query['mode'][0])
           self.assertEqual(code, query['oobCode'][0])
 

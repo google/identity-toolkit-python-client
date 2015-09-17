@@ -19,15 +19,20 @@ party developers do not need to call this class directly.
 """
 
 import time
-import urllib.request
-import urllib.parse
+try:
+    import urllib.request as urllib2
+    from urllib import parse
+except ImportError:
+    import urlparse as parse
+    import urllib2
+    import urllib
 
 import httplib2
 from oauth2client import client
 from oauth2client import crypt
 import simplejson
 
-import identitytoolkit.errors
+import identitytoolkit.errors as errors
 
 
 class RpcHelper(object):
@@ -179,14 +184,14 @@ class RpcHelper(object):
       API response as dict.
     """
     body = simplejson.dumps(params)
-    req = urllib.request.Request(self.google_api_url + method)
+    req = urllib2.Request(self.google_api_url + method)
     req.add_header('Content-type', 'application/json')
     if need_service_account:
       req.add_header('Authorization', 'Bearer ' + self._GetAccessToken())
     try:
       binary_body = body.encode('utf-8')
-      raw_response = urllib.request.urlopen(req, binary_body).read()
-    except urllib.request.HTTPError as err:
+      raw_response = urllib2.urlopen(req, binary_body).read()
+    except urllib2.HTTPError as err:
       if err.code == 400:
         raw_response = err.read()
       else:
@@ -199,14 +204,20 @@ class RpcHelper(object):
     Returns:
       string, oauth2 access token.
     """
-    body = urllib.parse.urlencode({
-        'assertion': self._GenerateAssertion(),
-        'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-    })
-    req = urllib.request.Request(RpcHelper.TOKEN_ENDPOINT)
+    try:
+        body = parse.urlencode({
+            'assertion': self._GenerateAssertion(),
+            'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        })
+    except AttributeError:
+        body = urllib.urlencode({
+            'assertion': self._GenerateAssertion(),
+            'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        })
+    req = urllib2.Request(RpcHelper.TOKEN_ENDPOINT)
     req.add_header('Content-type', 'application/x-www-form-urlencoded')
     binary_body = body.encode('utf-8')
-    raw_response = urllib.request.urlopen(req, binary_body)
+    raw_response = urllib2.urlopen(req, binary_body)
     return simplejson.loads(raw_response.read())['access_token']
 
   def _GenerateAssertion(self):

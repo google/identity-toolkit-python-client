@@ -42,7 +42,10 @@ for account in gitkit.GetAllUsers():
 
 import base64
 import urllib
-from urllib import parse
+try:
+    from urllib import parse
+except ImportError:
+    import urlparse as parse
 
 from oauth2client import crypt
 import simplejson
@@ -388,7 +391,11 @@ class GitkitClient(object):
 
       query = dict(parse.parse_qsl(parsed[4]))
       query.update({'mode': mode, 'oobCode': code})
-      parsed[4] = urllib.urlencode(query)
+      
+      try:
+        parsed[4] = parse.urlencode(query)
+      except AttributeError:
+        parsed[4] = urllib.urlencode(query)
 
       return code, parse.urlunparse(parsed)
     raise errors.GitkitClientError('invalid request')
