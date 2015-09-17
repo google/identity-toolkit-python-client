@@ -69,7 +69,10 @@ class GitkitClientTestCase(unittest.TestCase):
 
   def testUploadAccount(self):
     hash_algorithm = gitkitclient.ALGORITHM_HMAC_SHA256
-    hash_key = 'key123'
+    try:
+        hash_key = bytes('key123', 'utf-8')
+    except TypeError:
+        hash_key = 'key123'
     upload_user = gitkitclient.GitkitUser.FromDictionary({
         'email': self.email,
         'localId': self.user_id,
