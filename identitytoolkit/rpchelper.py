@@ -204,16 +204,14 @@ class RpcHelper(object):
     Returns:
       string, oauth2 access token.
     """
+    d = {
+        'assertion': self._GenerateAssertion(),
+        'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+    }
     try:
-        body = parse.urlencode({
-            'assertion': self._GenerateAssertion(),
-            'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-        })
+        body = parse.urlencode(d)
     except AttributeError:
-        body = urllib.urlencode({
-            'assertion': self._GenerateAssertion(),
-            'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-        })
+        body = urllib.urlencode(d)
     req = urllib_request.Request(RpcHelper.TOKEN_ENDPOINT)
     req.add_header('Content-type', 'application/x-www-form-urlencoded')
     binary_body = body.encode('utf-8')
