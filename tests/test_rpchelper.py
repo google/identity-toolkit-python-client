@@ -21,8 +21,8 @@ except ImportError:
     import mock
 
 import unittest
-
 import simplejson
+import sys
 
 from identitytoolkit import errors
 from identitytoolkit import rpchelper
@@ -58,16 +58,15 @@ class RpcHelperTest(unittest.TestCase):
 
   def testGetAccessToken(self):
     self.rpchelper._GenerateAssertion = mock.MagicMock()
-    try:
-        with mock.patch('urllib2.urlopen') as url_mock:
-          url_mock.return_value = StringIO('{"access_token": "token"}')
-          result = self.rpchelper._GetAccessToken()
-          self.assertEqual('token', result)
-    except ImportError:
-        with mock.patch('urllib.request.urlopen') as url_mock:
-          url_mock.return_value = StringIO('{"access_token": "token"}')
-          result = self.rpchelper._GetAccessToken()
-          self.assertEqual('token', result)
+    if sys.version_info[0] > 2:
+      str_urlopen = 'urllib.request.urlopen'
+    else:
+      str_urlopen = 'urllib2.urlopen'
+    with mock.patch('urllib2.urlopen') as url_mock:
+      url_mock.return_value = StringIO('{"access_token": "token"}')
+      result = self.rpchelper._GetAccessToken()
+      self.assertEqual('token', result)
+    
 
   def testGenerateAssertion(self):
     with mock.patch('oauth2client.crypt.Signer.from_string') as signer_mock:
