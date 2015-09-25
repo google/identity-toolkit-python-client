@@ -14,14 +14,13 @@
 
 """Unit test for RpcHelper."""
 try:
-    from StringIO import StringIO
-    import mock
-except ImportError:
     from io import StringIO
     from unittest import mock
+except ImportError:
+    from StringIO import StringIO
+    import mock
+
 import unittest
-
-
 
 import simplejson
 
