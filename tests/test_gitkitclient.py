@@ -110,11 +110,7 @@ class GitkitClientTestCase(unittest.TestCase):
 
       # Should stop since no more result
       rpc_mock.return_value = {}
-      try:
-        with self.assertRaises(StopIteration):
-            next(iterator)
-      except AttributeError:
-        self.assertRaises(StopIteration, iterator.next)
+      self.assertRaises(StopIteration, iterator.next)
 
       expected_call = [(('downloadAccount', {'maxResults': 10}),),
                        (('downloadAccount',
