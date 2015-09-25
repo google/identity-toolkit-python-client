@@ -62,7 +62,7 @@ class RpcHelperTest(unittest.TestCase):
       str_urlopen = 'urllib.request.urlopen'
     else:
       str_urlopen = 'urllib2.urlopen'
-    with mock.patch('urllib2.urlopen') as url_mock:
+    with mock.patch(str_urlopen) as url_mock:
       url_mock.return_value = StringIO('{"access_token": "token"}')
       result = self.rpchelper._GetAccessToken()
       self.assertEqual('token', result)
