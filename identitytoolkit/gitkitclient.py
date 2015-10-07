@@ -260,9 +260,10 @@ class GitkitClient(object):
       A dict of failed accounts. The key is the index of the 'accounts' list,
           starting from 0.
     """
+    print('aa')
     return self.rpc_helper.UploadAccount(hash_algorithm,
                                          base64.urlsafe_b64encode(hash_key),
-                                         map(GitkitUser.ToRequest, accounts))
+                                         [GitkitUser.ToRequest(i) for i in accounts])
 
   def GetAllUsers(self, pagination_size=10):
     """Gets all user info from Gitkit server.
