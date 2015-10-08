@@ -1,5 +1,7 @@
 This is the python client library for Google Identity Toolkit services.
 
+[![Build Status](https://travis-ci.org/google/identity-toolkit-python-client.svg)](https://travis-ci.org/google/identity-toolkit-python-client)
+
 Installation
 =====================
 
