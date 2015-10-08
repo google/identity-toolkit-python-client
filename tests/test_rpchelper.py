@@ -13,13 +13,16 @@
 # limitations under the License.
 
 """Unit test for RpcHelper."""
+try:
+    from io import StringIO
+    from unittest import mock
+except ImportError:
+    from StringIO import StringIO
+    import mock
 
-import StringIO
 import unittest
-
-
-import mock
 import simplejson
+import sys
 
 from identitytoolkit import errors
 from identitytoolkit import rpchelper
@@ -55,10 +58,15 @@ class RpcHelperTest(unittest.TestCase):
 
   def testGetAccessToken(self):
     self.rpchelper._GenerateAssertion = mock.MagicMock()
-    with mock.patch('urllib2.urlopen') as url_mock:
-      url_mock.return_value = StringIO.StringIO('{"access_token": "token"}')
+    if sys.version_info[0] > 2:
+      str_urlopen = 'urllib.request.urlopen'
+    else:
+      str_urlopen = 'urllib2.urlopen'
+    with mock.patch(str_urlopen) as url_mock:
+      url_mock.return_value = StringIO('{"access_token": "token"}')
       result = self.rpchelper._GetAccessToken()
       self.assertEqual('token', result)
+    
 
   def testGenerateAssertion(self):
     with mock.patch('oauth2client.crypt.Signer.from_string') as signer_mock:
