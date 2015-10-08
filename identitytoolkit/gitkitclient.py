@@ -42,13 +42,16 @@ for account in gitkit.GetAllUsers():
 
 import base64
 import urllib
-import urlparse
+try:
+    from urllib import parse
+except ImportError:
+    import urlparse as parse
 
 from oauth2client import crypt
 import simplejson
 
-import errors
-import rpchelper
+from identitytoolkit import errors
+from identitytoolkit import rpchelper
 
 
 # Symbolic constants for hash algorithms supported by Gitkit service.
@@ -192,7 +195,7 @@ class GitkitClient(object):
   def FromConfigFile(cls, config):
     json_data = simplejson.load(open(config))
 
-    key_file = file(json_data['serviceAccountPrivateKeyFile'], 'rb')
+    key_file = open(json_data['serviceAccountPrivateKeyFile'], 'rb')
     key = key_file.read()
     key_file.close()
 
@@ -259,7 +262,7 @@ class GitkitClient(object):
     """
     return self.rpc_helper.UploadAccount(hash_algorithm,
                                          base64.urlsafe_b64encode(hash_key),
-                                         map(GitkitUser.ToRequest, accounts))
+                                         [GitkitUser.ToRequest(i) for i in accounts])
 
   def GetAllUsers(self, pagination_size=10):
     """Gets all user info from Gitkit server.
@@ -384,13 +387,17 @@ class GitkitClient(object):
     """
     code = self.rpc_helper.GetOobCode(param)
     if code:
-      parsed = list(urlparse.urlparse(self.widget_url))
+      parsed = list(parse.urlparse(self.widget_url))
 
-      query = dict(urlparse.parse_qsl(parsed[4]))
+      query = dict(parse.parse_qsl(parsed[4]))
       query.update({'mode': mode, 'oobCode': code})
-      parsed[4] = urllib.urlencode(query)
+      
+      try:
+        parsed[4] = parse.urlencode(query)
+      except AttributeError:
+        parsed[4] = urllib.urlencode(query)
 
-      return code, urlparse.urlunparse(parsed)
+      return code, parse.urlunparse(parsed)
     raise errors.GitkitClientError('invalid request')
 
   def _PasswordResetRequest(self, param, user_ip):
