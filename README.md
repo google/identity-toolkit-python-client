@@ -1,6 +1,20 @@
 This is the python client library for Google Identity Toolkit services.
 
-Sample usage
+Installation
+=====================
+
+```
+pip install identity-toolkit-python-client
+```
+
+If you run into issues installing, you may be missing some dependencies such as `libffi` or `python-dev`. On Debian, you can install these with:
+```
+sudo apt-get install python-dev libffi-dev
+```
+
+*(replace python-dev with python3-dev if using Python 3)*
+
+Usage
 =====================
 
 Initialize Gitkit client instance
