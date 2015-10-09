@@ -1,2 +1,2 @@
-from tests.gitkitclient_test import GitkitClientTest
-from tests.rpchelper_test import RpcHelperTest
+from tests.test_gitkitclient import GitkitClientTestCase
+from tests.test_rpchelper import RpcHelperTestCase

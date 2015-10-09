@@ -28,7 +28,7 @@ from identitytoolkit import errors
 from identitytoolkit import rpchelper
 
 
-class RpcHelperTest(unittest.TestCase):
+class RpcHelperTestCase(unittest.TestCase):
 
   def setUp(self):
     self.api_url = '/widget'
