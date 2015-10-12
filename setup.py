@@ -30,6 +30,7 @@ setup(
     'License :: OSI Approved :: Apache Software License',
     'Operating System :: OS Independent',
     'Programming Language :: Python :: 2.7',
+    'Programming Language :: Python :: 3.3',
     'Programming Language :: Python :: 3.4',
     'Topic :: Internet :: WWW/HTTP',
   ],
