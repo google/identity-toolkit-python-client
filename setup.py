@@ -3,7 +3,7 @@ import sys
 
 install_requires = [
   'oauth2client>=1.3.2',
-  'pyOpenSSL==0.14',
+  'pyOpenSSL>=0.14',
   'simplejson>=2.3.2',
   ]
 tests_require = list(install_requires)
