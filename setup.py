@@ -18,7 +18,7 @@ setup(
   name = 'identity-toolkit-python-client',
   packages = packages,
   license="Apache 2.0",
-  version = '0.1.7',
+  version = '0.1.8',
   description = 'Google Identity Toolkit python client library',
   author = 'Jin Liu',
   url = 'https://github.com/google/identity-toolkit-python-client',
