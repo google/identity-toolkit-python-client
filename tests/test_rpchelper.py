@@ -33,8 +33,7 @@ class RpcHelperTestCase(unittest.TestCase):
   def setUp(self):
     self.api_url = '/widget'
     self.service_email = 'dev@content.google.com'
-    self.rpchelper = rpchelper.RpcHelper(self.service_email, '', self.api_url,
-                                         'api_key', None)
+    self.rpchelper = rpchelper.RpcHelper(self.service_email, '', self.api_url, None, False)
 
   def testGitkitClientError(self):
     error_response = {

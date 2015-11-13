@@ -30,6 +30,7 @@ except ImportError:
 import httplib2
 from oauth2client import client
 from oauth2client import crypt
+from oauth2client.client import GoogleCredentials
 import simplejson
 
 import identitytoolkit.errors as errors
@@ -38,15 +39,22 @@ import identitytoolkit.errors as errors
 class RpcHelper(object):
   """Helper class to invoke Gitkit remote API."""
 
+  GITKIT_SCOPE = 'https://www.googleapis.com/auth/identitytoolkit'
   TOKEN_ENDPOINT = 'https://accounts.google.com/o/oauth2/token'
   MAX_TOKEN_LIFETIME_SECS = 3600  # 1 hour in seconds
 
   def __init__(self, service_account_email, service_account_key,
-               google_api_url, server_api_key, http):
-    self.service_account_email = service_account_email
-    self.service_account_key = service_account_key
+               google_api_url, http, use_app_default_credentials):
+    if use_app_default_credentials:
+      self.use_app_default_credentials = True
+      self.credentials = GoogleCredentials.get_application_default() \
+          .create_scoped(RpcHelper.GITKIT_SCOPE)
+    else:
+      self.use_app_default_credentials = False
+      self.service_account_email = service_account_email
+      self.service_account_key = service_account_key
     self.google_api_url = google_api_url + 'identitytoolkit/v3/relyingparty/'
-    self.server_api_key = server_api_key
+
     if http is None:
       self.http = httplib2.Http(client.MemoryCache())
     else:
@@ -147,6 +155,16 @@ class RpcHelper(object):
     # pylint: disable=maybe-no-member
     return self._InvokeGitkitApi('deleteAccount', {'localId': local_id})
 
+  def GetProjectConfig(self):
+    """Gets project config.
+
+    Returns:
+      API response.
+    """
+    # pylint does not recognize the return type of simplejson.loads
+    # pylint: disable=maybe-no-member
+    return self._InvokeGitkitApi('getProjectConfig')
+
   def GetPublicCert(self):
     """Download Gitkit public cert.
 
@@ -154,21 +172,16 @@ class RpcHelper(object):
       dict of public certs.
     """
 
-    if self.server_api_key:
-      cert_url = self.google_api_url + 'publicKeys?key=' + self.server_api_key
-      headers = None
-    else:
-      cert_url = self.google_api_url + 'publicKeys'
-      headers = {'Authorization': 'Bearer ' + self._GetAccessToken()}
+    cert_url = self.google_api_url + 'publicKeys'
 
-    resp, content = self.http.request(cert_url, headers=headers)
+    resp, content = self.http.request(cert_url)
     if resp.status == 200:
       return simplejson.loads(content)
     else:
       raise errors.GitkitServerError('Error response for cert url: %s' %
                                      content)
 
-  def _InvokeGitkitApi(self, method, params, need_service_account=True):
+  def _InvokeGitkitApi(self, method, params=None, need_service_account=True):
     """Invokes Gitkit API, with optional access token for service account.
 
     Args:
@@ -183,13 +196,17 @@ class RpcHelper(object):
     Returns:
       API response as dict.
     """
-    body = simplejson.dumps(params)
+    body = simplejson.dumps(params) if params else None
     req = urllib_request.Request(self.google_api_url + method)
     req.add_header('Content-type', 'application/json')
     if need_service_account:
-      req.add_header('Authorization', 'Bearer ' + self._GetAccessToken())
+      if self.use_app_default_credentials:
+        access_token = self.credentials.get_access_token().access_token
+      else:
+        access_token = self._GetAccessToken()
+      req.add_header('Authorization', 'Bearer ' + access_token)
     try:
-      binary_body = body.encode('utf-8')
+      binary_body = body.encode('utf-8') if body else None
       raw_response = urllib_request.urlopen(req, binary_body).read()
     except urllib_request.HTTPError as err:
       if err.code == 400:
