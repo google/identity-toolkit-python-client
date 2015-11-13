@@ -23,6 +23,7 @@ except ImportError:
     import urlparse as parse
     import mock
 
+from identitytoolkit import errors
 from identitytoolkit import gitkitclient
 
 
@@ -30,11 +31,72 @@ class GitkitClientTestCase(unittest.TestCase):
 
   def setUp(self):
     self.widget_url = 'http://localhost:9000/widget'
-    self.gitkitclient = gitkitclient.GitkitClient('', '', '', self.widget_url)
     self.user_id = '1234'
     self.email = 'user@example.com'
     self.user_name = 'Joe'
     self.user_photo = 'http://idp.com/photo'
+    self.gitkitclient = gitkitclient.GitkitClient(client_id='client_id',
+                                                  widget_url=self.widget_url,
+                                                  use_app_default_credentials=False)
+
+  def testGetClientId(self):
+    expected_client_id = 'client_id'
+    with mock.patch('identitytoolkit.rpchelper.RpcHelper.GetProjectConfig') as rpc_mock:
+        rpc_mock.return_value = {
+            'idpConfig': [{
+                'provider': 'GOOGLE',
+                'clientId': expected_client_id,
+            }]
+        }
+        actual_client_id = self.gitkitclient.GetClientId()
+        self.assertEqual(actual_client_id, expected_client_id)
+
+  def testGetClientId_throwException(self):
+    with mock.patch('identitytoolkit.rpchelper.RpcHelper.GetProjectConfig') as rpc_mock:
+        rpc_mock.return_value = {
+            'idpConfig': []
+        }
+        try:
+          self.gitkitclient.GetClientId()
+          self.fail('GitkitServerException expected')
+        except errors.GitkitServerError as error:
+          self.assertEqual('Google client ID not configured yet.', error.value)
+
+  def testGetBrowserApiKey(self):
+    expected_api_key = 'api_key'
+    with mock.patch('identitytoolkit.rpchelper.RpcHelper.GetProjectConfig') as rpc_mock:
+        rpc_mock.return_value = {
+            'apiKey': expected_api_key,
+        }
+        actual_api_key = self.gitkitclient.GetBrowserApiKey()
+        self.assertEqual(actual_api_key, expected_api_key)
+
+  def testGetSignInOptions(self):
+    with mock.patch('identitytoolkit.rpchelper.RpcHelper.GetProjectConfig') as rpc_mock:
+        rpc_mock.return_value = {
+            'allowPasswordUser': True,
+            'idpConfig': [{
+                'provider': 'GOOGLE',
+                'enabled': True,
+            }]
+        }
+        sign_in_options = self.gitkitclient.GetSignInOptions()
+        self.assertEqual(sign_in_options, ['google', 'password'])
+
+  def testGetSignInOptions_throwEmpty(self):
+    with mock.patch('identitytoolkit.rpchelper.RpcHelper.GetProjectConfig') as rpc_mock:
+        rpc_mock.return_value = {
+            'allowPasswordUser': False,
+            'idpConfig': [{
+                'provider': 'GOOGLE',
+                'enabled': False,
+            }]
+        }
+        try:
+          self.gitkitclient.GetSignInOptions()
+          self.fail('GitkitServerException expected')
+        except errors.GitkitServerError as error:
+          self.assertEqual('no sign in option configured', error.value)
 
   def testVerifyToken(self):
     with mock.patch('identitytoolkit.rpchelper.RpcHelper.GetPublicCert') as rpc_mock:
@@ -148,6 +210,7 @@ class GitkitClientTestCase(unittest.TestCase):
           query = parse.parse_qs(url.query)
           self.assertEqual('verifyEmail', query['mode'][0])
           self.assertEqual(code, query['oobCode'][0])
+      
 
 if __name__ == '__main__':
   unittest.main()

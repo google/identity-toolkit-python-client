@@ -168,9 +168,9 @@ class GitkitClient(object):
   RESET_PASSWORD_ACTION = 'resetPassword'
   CHANGE_EMAIL_ACTION = 'changeEmail'
 
-  def __init__(self, client_id, service_account_email, service_account_key,
-               widget_url='', cookie_name='gtoken', server_api_key=None,
-               http=None):
+  def __init__(self, client_id='', service_account_email='', service_account_key='',
+               widget_url='', cookie_name='gtoken', http=None,
+               use_app_default_credentials=True):
     """Inits the Gitkit client library.
 
     Args:
@@ -179,8 +179,8 @@ class GitkitClient(object):
       service_account_key: string, Google service account private key.
       widget_url: string, Gitkit widget URL.
       cookie_name: string, Gitkit cookie name.
-      server_api_key: string, developer's server api key.
       http: Http, http client which support cache.
+      use_app_default_credentials: bool, whether to use app default credentials.
     """
     self.client_id = client_id
     self.widget_url = widget_url
@@ -188,8 +188,43 @@ class GitkitClient(object):
     self.rpc_helper = rpchelper.RpcHelper(service_account_email,
                                           service_account_key,
                                           GitkitClient.GOOGLE_API_BASE,
-                                          server_api_key,
-                                          http)
+                                          http,
+                                          use_app_default_credentials)
+    self.config_data_cached = None
+    if not self.client_id:
+      self.client_id = self.GetClientId()
+
+  def _RetrieveProjectConfig(self):
+    if not self.config_data_cached:
+      self.config_data_cached = self.rpc_helper.GetProjectConfig()
+    return self.config_data_cached
+
+  def GetClientId(self):
+    config_data = self._RetrieveProjectConfig()
+    client_id = None
+    for idp in config_data['idpConfig']:
+      if idp['provider'] == 'GOOGLE':
+        client_id = idp['clientId']
+    if not client_id:
+        raise errors.GitkitServerError('Google client ID not configured yet.')
+    return client_id
+      
+  def GetBrowserApiKey(self):
+    config_data = self._RetrieveProjectConfig()
+    return config_data['apiKey']
+
+  def GetSignInOptions(self):
+    config_data = self._RetrieveProjectConfig()
+    sign_in_options = []
+    for idp in config_data['idpConfig']:
+      if idp['enabled']:
+        sign_in_options.append(str(idp['provider']).lower())
+    if config_data['allowPasswordUser']:
+      sign_in_options.append('password')
+    if not sign_in_options:
+      raise errors.GitkitServerError('no sign in option configured')
+    return sign_in_options
+          
 
   @classmethod
   def FromConfigFile(cls, config):
@@ -205,7 +240,7 @@ class GitkitClient(object):
         key,
         json_data['widgetUrl'],
         json_data['cookieName'],
-        json_data.get('serverApiKey', None))
+        use_app_default_credentials=False)
 
   def VerifyGitkitToken(self, jwt):
     """Verifies a Gitkit token string.
