@@ -36,8 +36,7 @@ class GitkitClientTestCase(unittest.TestCase):
     self.user_name = 'Joe'
     self.user_photo = 'http://idp.com/photo'
     self.gitkitclient = gitkitclient.GitkitClient(client_id='client_id',
-                                                  widget_url=self.widget_url,
-                                                  use_app_default_credentials=False)
+                                                  widget_url=self.widget_url)
 
   def testGetClientId(self):
     expected_client_id = 'client_id'
