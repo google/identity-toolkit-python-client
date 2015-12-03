@@ -169,18 +169,18 @@ class GitkitClient(object):
   RESET_PASSWORD_ACTION = 'resetPassword'
   CHANGE_EMAIL_ACTION = 'changeEmail'
 
-  def __init__(self, client_id='', project_id='', service_account_email='',
-               service_account_key='', widget_url='', cookie_name='gtoken', http=None):
+  def __init__(self, client_id='', service_account_email='', service_account_key='',
+               widget_url='', cookie_name='gtoken', http=None, project_id=''):
     """Inits the Gitkit client library.
 
     Args:
       client_id: string, developer's Google oauth2 web client id.
-      project_id: string, developer console's project id.
       service_account_email: string, Google service account email.
       service_account_key: string, Google service account private key.
       widget_url: string, Gitkit widget URL.
       cookie_name: string, Gitkit cookie name.
       http: Http, http client which support cache.
+      project_id: string, developer console's project id.
     """
     self.client_id = client_id
     self.project_id = project_id
@@ -242,16 +242,17 @@ class GitkitClient(object):
       projectId = json_data['projectId']
     except KeyError:
       projectId = None
-    if clientId == None and projectId == None:
+    if not clientId and not projectId:
       raise errors.GitkitClientError('Missing projectId or clientId in server configuration.')
 
     return cls(
         clientId,
-        projectId,
         json_data['serviceAccountEmail'],
         key,
         json_data['widgetUrl'],
-        json_data['cookieName'])
+        json_data['cookieName'],
+        None,
+        projectId)
 
   def VerifyGitkitToken(self, jwt):
     """Verifies a Gitkit token string.
