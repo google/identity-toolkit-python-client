@@ -21,6 +21,7 @@ Usage example:
 # Initialize with Google Developer Console information
 gitkit = gitkitclient.GitkitClient(
     client_id=GOOGLE_OAUTH2_WEB_CLIENT_ID,
+    project_id=GOOGLE_DEVELOPER_CONSOLE_PROJECT_ID,
     service_account_email=SERVICE_ACCOUNT_EMAIL,
     service_account_key=SERVICE_ACCOUNT_PRIVATE_KEY_P12,
     widget_url=FULL_URL_OF_GITKIT_WIDGET,
@@ -168,13 +169,14 @@ class GitkitClient(object):
   RESET_PASSWORD_ACTION = 'resetPassword'
   CHANGE_EMAIL_ACTION = 'changeEmail'
 
-  def __init__(self, client_id='', service_account_email='', service_account_key='',
-               widget_url='', cookie_name='gtoken', http=None,
+  def __init__(self, client_id='', project_id='', service_account_email='',
+               service_account_key='', widget_url='', cookie_name='gtoken', http=None,
                use_app_default_credentials=True):
     """Inits the Gitkit client library.
 
     Args:
       client_id: string, developer's Google oauth2 web client id.
+      project_id: string, developer console's project id.
       service_account_email: string, Google service account email.
       service_account_key: string, Google service account private key.
       widget_url: string, Gitkit widget URL.
@@ -183,6 +185,7 @@ class GitkitClient(object):
       use_app_default_credentials: bool, whether to use app default credentials.
     """
     self.client_id = client_id
+    self.project_id = project_id
     self.widget_url = widget_url
     self.cookie_name = cookie_name
     self.rpc_helper = rpchelper.RpcHelper(service_account_email,
@@ -208,7 +211,7 @@ class GitkitClient(object):
     if not client_id:
         raise errors.GitkitServerError('Google client ID not configured yet.')
     return client_id
-      
+
   def GetBrowserApiKey(self):
     config_data = self._RetrieveProjectConfig()
     return config_data['apiKey']
@@ -224,7 +227,7 @@ class GitkitClient(object):
     if not sign_in_options:
       raise errors.GitkitServerError('no sign in option configured')
     return sign_in_options
-          
+
 
   @classmethod
   def FromConfigFile(cls, config):
@@ -234,8 +237,20 @@ class GitkitClient(object):
     key = key_file.read()
     key_file.close()
 
+    try:
+      clientId = json_data['clientId']
+    except KeyError:
+      clientId = None
+    try:
+      projectId = json_data['projectId']
+    except KeyError:
+      projectId = None
+    if clientId == None and projectId == None:
+      raise errors.GitkitClientError('Missing projectId or clientId in server configuration.')
+
     return cls(
-        json_data['clientId'],
+        clientId,
+        projectId,
         json_data['serviceAccountEmail'],
         key,
         json_data['widgetUrl'],
@@ -254,7 +269,21 @@ class GitkitClient(object):
     certs = self.rpc_helper.GetPublicCert()
     crypt.MAX_TOKEN_LIFETIME_SECS = 30 * 86400  # 30 days
     try:
-      parsed = crypt.verify_signed_jwt_with_certs(jwt, certs, self.client_id)
+      parsed = None
+      if self.project_id:
+        try:
+          parsed = crypt.verify_signed_jwt_with_certs(jwt, certs, self.project_id)
+        except crypt.AppIdentityError as e:
+          if e.message.find("Wrong recipient") == -1:
+            raise e
+      if parsed == None and self.client_id:
+        try:
+          parsed = crypt.verify_signed_jwt_with_certs(jwt, certs, self.client_id)
+        except crypt.AppIdentityError as e:
+          if e.message.find("Wrong recipient") == -1:
+            raise e
+      if parsed == None:
+        raise crypt.AppIdentityError("Gitkit token audience doesn't match projectId or clientId in server configuration")
       return GitkitUser.FromToken(parsed)
     except crypt.AppIdentityError:
       return None
@@ -426,7 +455,7 @@ class GitkitClient(object):
 
       query = dict(parse.parse_qsl(parsed[4]))
       query.update({'mode': mode, 'oobCode': code})
-      
+
       try:
         parsed[4] = parse.urlencode(query)
       except AttributeError:
