@@ -170,8 +170,7 @@ class GitkitClient(object):
   CHANGE_EMAIL_ACTION = 'changeEmail'
 
   def __init__(self, client_id='', project_id='', service_account_email='',
-               service_account_key='', widget_url='', cookie_name='gtoken', http=None,
-               use_app_default_credentials=True):
+               service_account_key='', widget_url='', cookie_name='gtoken', http=None):
     """Inits the Gitkit client library.
 
     Args:
@@ -182,7 +181,6 @@ class GitkitClient(object):
       widget_url: string, Gitkit widget URL.
       cookie_name: string, Gitkit cookie name.
       http: Http, http client which support cache.
-      use_app_default_credentials: bool, whether to use app default credentials.
     """
     self.client_id = client_id
     self.project_id = project_id
@@ -191,8 +189,7 @@ class GitkitClient(object):
     self.rpc_helper = rpchelper.RpcHelper(service_account_email,
                                           service_account_key,
                                           GitkitClient.GOOGLE_API_BASE,
-                                          http,
-                                          use_app_default_credentials)
+                                          http)
     self.config_data_cached = None
     if not self.client_id:
       self.client_id = self.GetClientId()
@@ -254,8 +251,7 @@ class GitkitClient(object):
         json_data['serviceAccountEmail'],
         key,
         json_data['widgetUrl'],
-        json_data['cookieName'],
-        use_app_default_credentials=False)
+        json_data['cookieName'])
 
   def VerifyGitkitToken(self, jwt):
     """Verifies a Gitkit token string.

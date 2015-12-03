@@ -44,15 +44,19 @@ class RpcHelper(object):
   MAX_TOKEN_LIFETIME_SECS = 3600  # 1 hour in seconds
 
   def __init__(self, service_account_email, service_account_key,
-               google_api_url, http, use_app_default_credentials):
-    if use_app_default_credentials:
-      self.use_app_default_credentials = True
-      self.credentials = GoogleCredentials.get_application_default() \
-          .create_scoped(RpcHelper.GITKIT_SCOPE)
-    else:
-      self.use_app_default_credentials = False
+               google_api_url, http):
+    self.credentials = None
+    if service_account_email and service_account_key:
       self.service_account_email = service_account_email
       self.service_account_key = service_account_key
+    else:
+      self.service_account_email = ''
+      self.service_account_key = ''
+      try:
+        self.credentials = GoogleCredentials.get_application_default() \
+            .create_scoped(RpcHelper.GITKIT_SCOPE)
+      except Exception as e:
+        print('WARNING: unable to retrieve service account credentials.')
     self.google_api_url = google_api_url + 'identitytoolkit/v3/relyingparty/'
 
     if http is None:
@@ -200,10 +204,12 @@ class RpcHelper(object):
     req = urllib_request.Request(self.google_api_url + method)
     req.add_header('Content-type', 'application/json')
     if need_service_account:
-      if self.use_app_default_credentials:
+      if self.credentials:
         access_token = self.credentials.get_access_token().access_token
-      else:
+      elif self.service_account_email and self.service_account_key:
         access_token = self._GetAccessToken()
+      else:
+        raise errors.GitkitClientError('Missing service account credentials')
       req.add_header('Authorization', 'Bearer ' + access_token)
     try:
       binary_body = body.encode('utf-8') if body else None
