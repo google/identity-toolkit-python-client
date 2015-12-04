@@ -184,9 +184,9 @@ class GitkitClient(object):
       project_id: string, developer console's project id.
     """
     self.client_id = client_id
-    self.project_id = project_id
     self.widget_url = widget_url
     self.cookie_name = cookie_name
+    self.project_id = project_id
     self.rpc_helper = rpchelper.RpcHelper(service_account_email,
                                           service_account_key,
                                           GitkitClient.GOOGLE_API_BASE,
@@ -235,14 +235,8 @@ class GitkitClient(object):
     key = key_file.read()
     key_file.close()
 
-    try:
-      clientId = json_data['clientId']
-    except KeyError:
-      clientId = None
-    try:
-      projectId = json_data['projectId']
-    except KeyError:
-      projectId = None
+    clientId = json_data.get('clientId')
+    projectId = json_data.get('projectId')
     if not clientId and not projectId:
       raise errors.GitkitClientError('Missing projectId or clientId in server configuration.')
 
@@ -266,21 +260,16 @@ class GitkitClient(object):
     """
     certs = self.rpc_helper.GetPublicCert()
     crypt.MAX_TOKEN_LIFETIME_SECS = 30 * 86400  # 30 days
-    try:
-      parsed = None
-      for aud in [self.project_id, self.client_id]:
-        try:
-          parsed = crypt.verify_signed_jwt_with_certs(jwt, certs, aud)
-        except crypt.AppIdentityError as e:
-          if "Wrong recipient" not in e.message:
-            raise e
-        if parsed:
-          break
-      if not parsed:
-        raise crypt.AppIdentityError("Gitkit token audience doesn't match projectId or clientId in server configuration")
-      return GitkitUser.FromToken(parsed)
-    except crypt.AppIdentityError:
-      return None
+    parsed = None
+    for aud in filter(lambda x: x is not None, [self.project_id, self.client_id]):
+      try:
+        parsed = crypt.verify_signed_jwt_with_certs(jwt, certs, aud)
+      except crypt.AppIdentityError as e:
+        if "Wrong recipient" not in e.message:
+          return None
+      if parsed:
+        return GitkitUser.FromToken(parsed)
+    return None # Gitkit token audience doesn't match projectId or clientId in server configuration
 
   def GetUserByEmail(self, email):
     """Gets user info by email.
