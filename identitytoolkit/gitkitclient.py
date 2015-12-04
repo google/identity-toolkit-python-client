@@ -267,19 +267,15 @@ class GitkitClient(object):
     crypt.MAX_TOKEN_LIFETIME_SECS = 30 * 86400  # 30 days
     try:
       parsed = None
-      if self.project_id:
+      for aud in [self.project_id, self.client_id]:
         try:
-          parsed = crypt.verify_signed_jwt_with_certs(jwt, certs, self.project_id)
+          parsed = crypt.verify_signed_jwt_with_certs(jwt, certs, aud)
         except crypt.AppIdentityError as e:
-          if e.message.find("Wrong recipient") == -1:
+          if "Wrong recipient" not in e.message:
             raise e
-      if parsed == None and self.client_id:
-        try:
-          parsed = crypt.verify_signed_jwt_with_certs(jwt, certs, self.client_id)
-        except crypt.AppIdentityError as e:
-          if e.message.find("Wrong recipient") == -1:
-            raise e
-      if parsed == None:
+        if parsed:
+          break
+      if not parsed:
         raise crypt.AppIdentityError("Gitkit token audience doesn't match projectId or clientId in server configuration")
       return GitkitUser.FromToken(parsed)
     except crypt.AppIdentityError:
