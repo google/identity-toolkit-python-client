@@ -24,7 +24,9 @@ gitkit = gitkitclient.GitkitClient(
     service_account_email=SERVICE_ACCOUNT_EMAIL,
     service_account_key=SERVICE_ACCOUNT_PRIVATE_KEY_P12,
     widget_url=FULL_URL_OF_GITKIT_WIDGET,
-    cookie_name='gtoken')
+    cookie_name='gtoken',
+    http=None,
+    project_id=GOOGLE_DEVELOPER_CONSOLE_PROJECT_ID)
 
 # Verify Gitkit token locally
 user = gitkit.VerifyGitkitToken(token_string)
@@ -169,7 +171,7 @@ class GitkitClient(object):
   CHANGE_EMAIL_ACTION = 'changeEmail'
 
   def __init__(self, client_id='', service_account_email='', service_account_key='',
-               widget_url='', cookie_name='gtoken', http=None):
+               widget_url='', cookie_name='gtoken', http=None, project_id=''):
     """Inits the Gitkit client library.
 
     Args:
@@ -179,10 +181,12 @@ class GitkitClient(object):
       widget_url: string, Gitkit widget URL.
       cookie_name: string, Gitkit cookie name.
       http: Http, http client which support cache.
+      project_id: string, developer console's project id.
     """
     self.client_id = client_id
     self.widget_url = widget_url
     self.cookie_name = cookie_name
+    self.project_id = project_id
     self.rpc_helper = rpchelper.RpcHelper(service_account_email,
                                           service_account_key,
                                           GitkitClient.GOOGLE_API_BASE,
@@ -205,7 +209,7 @@ class GitkitClient(object):
     if not client_id:
         raise errors.GitkitServerError('Google client ID not configured yet.')
     return client_id
-      
+
   def GetBrowserApiKey(self):
     config_data = self._RetrieveProjectConfig()
     return config_data['apiKey']
@@ -221,7 +225,7 @@ class GitkitClient(object):
     if not sign_in_options:
       raise errors.GitkitServerError('no sign in option configured')
     return sign_in_options
-          
+
 
   @classmethod
   def FromConfigFile(cls, config):
@@ -231,12 +235,19 @@ class GitkitClient(object):
     key = key_file.read()
     key_file.close()
 
+    clientId = json_data.get('clientId')
+    projectId = json_data.get('projectId')
+    if not clientId and not projectId:
+      raise errors.GitkitClientError('Missing projectId or clientId in server configuration.')
+
     return cls(
-        json_data['clientId'],
+        clientId,
         json_data['serviceAccountEmail'],
         key,
         json_data['widgetUrl'],
-        json_data['cookieName'])
+        json_data['cookieName'],
+        None,
+        projectId)
 
   def VerifyGitkitToken(self, jwt):
     """Verifies a Gitkit token string.
@@ -249,11 +260,16 @@ class GitkitClient(object):
     """
     certs = self.rpc_helper.GetPublicCert()
     crypt.MAX_TOKEN_LIFETIME_SECS = 30 * 86400  # 30 days
-    try:
-      parsed = crypt.verify_signed_jwt_with_certs(jwt, certs, self.client_id)
-      return GitkitUser.FromToken(parsed)
-    except crypt.AppIdentityError:
-      return None
+    parsed = None
+    for aud in filter(lambda x: x is not None, [self.project_id, self.client_id]):
+      try:
+        parsed = crypt.verify_signed_jwt_with_certs(jwt, certs, aud)
+      except crypt.AppIdentityError as e:
+        if "Wrong recipient" not in e.message:
+          return None
+      if parsed:
+        return GitkitUser.FromToken(parsed)
+    return None # Gitkit token audience doesn't match projectId or clientId in server configuration
 
   def GetUserByEmail(self, email):
     """Gets user info by email.
@@ -422,7 +438,7 @@ class GitkitClient(object):
 
       query = dict(parse.parse_qsl(parsed[4]))
       query.update({'mode': mode, 'oobCode': code})
-      
+
       try:
         parsed[4] = parse.urlencode(query)
       except AttributeError:
