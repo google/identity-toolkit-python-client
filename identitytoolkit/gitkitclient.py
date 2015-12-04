@@ -21,11 +21,12 @@ Usage example:
 # Initialize with Google Developer Console information
 gitkit = gitkitclient.GitkitClient(
     client_id=GOOGLE_OAUTH2_WEB_CLIENT_ID,
-    project_id=GOOGLE_DEVELOPER_CONSOLE_PROJECT_ID,
     service_account_email=SERVICE_ACCOUNT_EMAIL,
     service_account_key=SERVICE_ACCOUNT_PRIVATE_KEY_P12,
     widget_url=FULL_URL_OF_GITKIT_WIDGET,
-    cookie_name='gtoken')
+    cookie_name='gtoken',
+    http=None,
+    project_id=GOOGLE_DEVELOPER_CONSOLE_PROJECT_ID)
 
 # Verify Gitkit token locally
 user = gitkit.VerifyGitkitToken(token_string)
